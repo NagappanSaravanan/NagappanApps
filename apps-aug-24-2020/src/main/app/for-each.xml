@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:mulexml="http://www.mulesoft.org/schema/mule/xml" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/xml http://www.mulesoft.org/schema/mule/xml/current/mule-xml.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+    <flow name="for-eachFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/foreach" doc:name="HTTP"/>
+        <byte-array-to-string-transformer mimeType="application/xml" doc:name="Byte Array to String"/>
+        <foreach collection="#[xpath3('//Employees/Employee',payload,'NODESET')]" doc:name="For Each">
+            <mulexml:dom-to-xml-transformer doc:name="DOM to XML"/>
+            <enricher doc:name="Message Enricher">
+                <flow-ref name="for-eachSub_Flow" doc:name="Flow Reference"/>
+                <enrich source="#[flowVars.zip]" target="#[flowVars.zip]"/>
+            </enricher>
+            <set-variable variableName="Name" value="#[xpath://name/text()]" doc:name="Variable"/>
+            <set-payload value="#[payload]&lt;zip&gt;#[flowVars.zip]&lt;/zip&gt;" mimeType="application/xml" doc:name="Set Payload"/>
+            <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+            <file:outbound-endpoint path="src/main/resources" outputPattern="#[flowVars.Name].txt" responseTimeout="10000" doc:name="File"/>
+        </foreach>
+        <set-payload value="#[payload]" mimeType="application/xml" doc:name="Set Payload"/>
+    </flow>
+    <sub-flow name="for-eachSub_Flow">
+        <set-variable variableName="zip" value="60103" doc:name="Variable"/>
+    </sub-flow>
+    
+     
+</mule>

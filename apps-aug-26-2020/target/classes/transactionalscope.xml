@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:cluster="http://www.mulesoft.org/schema/mule/ee/cluster" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+    <configuration defaultExceptionStrategy-ref="ChoiceExceptionStrategytest" doc:name="Configuration">
+        <http:config useTransportForUris="false"/>
+    </configuration>
+    <db:generic-config name="Generic_Database_Configuration" url="jdbc:sqlserver://localhost:1433;databaseName=test;user=aspire;password=Aspire@123" driverClassName="com.microsoft.sqlserver.jdbc.SQLServerDriver" doc:name="Generic Database Configuration"/>
+    <flow name="transactionalscopeFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/transactionalScope" doc:name="HTTP"/>
+        <byte-array-to-string-transformer mimeType="application/json" doc:name="Byte Array to String"/>
+        <logger message="Order Received" level="INFO" doc:name="Logger"/>
+        <logger message="#[json:name] #[json:id]" level="INFO" doc:name="Logger"/>
+        <transactional action="ALWAYS_BEGIN" doc:name="Transactional">
+            <db:insert config-ref="Generic_Database_Configuration" transactionalAction="ALWAYS_JOIN" doc:name="Database">
+                <db:parameterized-query><![CDATA[INSERT INTO test VALUES (#[json:id],#[json:name],#[json:status])]]></db:parameterized-query>
+            </db:insert>
+            <logger message="Customer Created" level="INFO" doc:name="Logger"/>
+         
+        </transactional>
+        <logger message="Order Created" level="INFO" doc:name="Logger"/>
+    </flow>
+</mule>

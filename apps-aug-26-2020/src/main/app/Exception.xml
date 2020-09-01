@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:cluster="http://www.mulesoft.org/schema/mule/ee/cluster" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:ws="http://www.mulesoft.org/schema/mule/ws" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ws http://www.mulesoft.org/schema/mule/ws/current/mule-ws.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd">
+    <ws:consumer-config name="Web_Service_Consumer" wsdlLocation="http://www.dneonline.com/calculator.asmx?wsdl" service="Calculator" port="CalculatorSoap12" serviceAddress="http://www.dneonline.com/calculator.asmx" doc:name="Web Service Consumer"/>
+    <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8091" doc:name="HTTP Listener Configuration"/>
+    <configuration defaultExceptionStrategy-ref="ChoiceExceptionStrategytest" doc:name="Configuration">
+        <http:config useTransportForUris="false"/>
+    </configuration>
+    <flow name="apps-aug-26-2020Flow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/exceptionHandling" doc:name="HTTP"/>
+        <set-variable variableName="num1" value="#[json:num1]" doc:name="Variable"/>
+        <set-variable variableName="num2" value="#[json:num2]" doc:name="Variable"/>
+        <logger message="#[flowVars.num1]  #[flowVars.num2]" level="INFO" doc:name="Logger"/>
+        <dw:transform-message doc:name="Transform Message" metadata:id="8df583c8-d4a7-4af0-8f20-f00c94d33e9f">
+            <dw:input-variable mimeType="application/java" variableName="num1"/>
+            <dw:input-variable mimeType="application/java" variableName="num2"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/xml
+%namespace ns0 http://tempuri.org/
+---
+{
+	ns0#Add: {
+		ns0#intA: flowVars.num1,
+		ns0#intB: flowVars.num2
+	}
+}]]></dw:set-payload>
+        </dw:transform-message>
+        <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+        <ws:consumer config-ref="Web_Service_Consumer" operation="Add" doc:name="Web Service Consumer"/>
+       
+      
+          
+   
+    </flow>
+    
+</mule>

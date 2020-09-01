@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:mulexml="http://www.mulesoft.org/schema/mule/xml" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+http://www.mulesoft.org/schema/mule/xml http://www.mulesoft.org/schema/mule/xml/current/mule-xml.xsd">
+    <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8087" doc:name="HTTP Listener Configuration"/>
+    <flow name="apps-aug-24-2020Flow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/debugger" doc:name="HTTP"/>
+        <logger message="First Logger" level="INFO" doc:name="Logger"/>
+        <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+        <set-variable variableName="Name" value="#[json:details/name]" doc:name="Variable"/>
+        <json:json-to-xml-transformer doc:name="JSON to XML"/>
+        <logger message="#[flowVars.Name]" level="INFO" doc:name="Logger"/>
+        <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+        <logger message="Third Logger" level="INFO" doc:name="Logger"/>
+        <set-variable variableName="age" value="#[xpath3('//details/age',payload,'STRING')]" doc:name="Variable"/>
+        <logger message="#[flowVars.age]" level="INFO" doc:name="Logger"/>
+        <logger message="Fourth Logger" level="INFO" doc:name="Logger"/>
+        <set-payload value="Debugger App Executed Successfully" doc:name="Set Payload"/>
+    </flow>
+</mule>
